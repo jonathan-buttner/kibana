@@ -60,6 +60,7 @@ export default function resolverAPIIntegrationTests({ getService }: FtrProviderC
           )
           .set(commonHeaders)
           .expect(200));
+
         expect(body.alerts).be.empty();
         expect(body.pagination.next).to.eql(null);
         expect(body.pagination.total).to.eql(1);

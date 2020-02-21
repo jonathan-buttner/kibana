@@ -9,7 +9,7 @@ import { JsonObject } from '../../../../../../../src/plugins/kibana_utils/public
 export class RelatedEventsQuery extends ResolverQuery {
   protected legacyQuery(endpointID: string, uniquePIDs: string[], index: string): JsonObject {
     return {
-      body: this.paginateBy('endgame.serial_event_id', {
+      body: this.paginateBy(ResolverQuery.LegacyEventIDField, {
         query: {
           bool: {
             filter: [
@@ -43,7 +43,7 @@ export class RelatedEventsQuery extends ResolverQuery {
 
   protected query(entityIDs: string[], index: string): JsonObject {
     return {
-      body: this.paginateBy('event.id', {
+      body: this.paginateBy(ResolverQuery.EventIDField, {
         query: {
           bool: {
             filter: [

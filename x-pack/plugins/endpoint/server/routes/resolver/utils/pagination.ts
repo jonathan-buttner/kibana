@@ -8,6 +8,7 @@ import { SearchResponse } from 'elasticsearch';
 import { ResolverEvent } from '../../../../common/types';
 import { extractEventID } from './normalize';
 import { JsonObject } from '../../../../../../../src/plugins/kibana_utils/public';
+import { QueryEventID } from './normalize';
 
 export interface PaginationParams {
   size: number;
@@ -68,7 +69,8 @@ export function paginate(pagination: PaginationParams, field: string, query: Jso
 }
 
 export function paginatedResults(
-  response: SearchResponse<ResolverEvent>
+  response: SearchResponse<ResolverEvent>,
+  queryEventID: QueryEventID
 ): { total: number; results: ResolverEvent[]; nextCursor: string | null } {
   const total = response.aggregations?.total?.value || 0;
   if (response.hits.hits.length === 0) {
@@ -84,7 +86,7 @@ export function paginatedResults(
   const next = results[results.length - 1];
   const cursor = {
     timestamp: next['@timestamp'],
-    eventID: extractEventID(next),
+    eventID: extractEventID(next, queryEventID),
   };
 
   return { total, results, nextCursor: urlEncodeCursor(cursor) };

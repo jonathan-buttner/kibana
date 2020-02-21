@@ -7,13 +7,24 @@
 import { IScopedClusterClient } from 'kibana/server';
 import { EndpointAppConstants } from '../../../../common/types';
 import { paginate, paginatedResults, PaginationParams } from '../utils/pagination';
+import { QueryEventID } from '../utils/normalize';
 import { JsonObject } from '../../../../../../../src/plugins/kibana_utils/public';
 
 export abstract class ResolverQuery {
+  public static LegacyEventIDField = 'endgame.serial_event_id';
+  public static EventIDField = 'event.id';
+  private readonly queryEventID: QueryEventID;
+
   constructor(
     private readonly endpointID?: string,
-    private readonly pagination?: PaginationParams
-  ) {}
+    private readonly pagination?: PaginationParams,
+    queryEventID?: QueryEventID
+  ) {
+    this.queryEventID = queryEventID || {
+      legacyFieldPath: ResolverQuery.LegacyEventIDField,
+      fieldPath: ResolverQuery.EventIDField,
+    };
+  }
 
   protected paginateBy(field: string, query: JsonObject) {
     if (!this.pagination) {
@@ -30,7 +41,10 @@ export abstract class ResolverQuery {
   }
 
   async search(client: IScopedClusterClient, ...ids: string[]) {
-    return paginatedResults(await client.callAsCurrentUser('search', this.build(...ids)));
+    return paginatedResults(
+      await client.callAsCurrentUser('search', this.build(...ids)),
+      this.queryEventID
+    );
   }
 
   protected abstract legacyQuery(

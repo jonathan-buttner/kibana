@@ -3,18 +3,23 @@
  * or more contributor license agreements. Licensed under the Elastic License;
  * you may not use this file except in compliance with the Elastic License.
  */
-
+import _ from 'lodash';
 import { ResolverEvent, LegacyEndpointEvent } from '../../../../common/types';
 
 function isLegacyData(data: ResolverEvent): data is LegacyEndpointEvent {
   return data.agent.type === 'endgame';
 }
 
-export function extractEventID(event: ResolverEvent) {
+export interface QueryEventID {
+  legacyFieldPath: string;
+  fieldPath: string;
+}
+
+export function extractEventID(event: ResolverEvent, queryEventID: QueryEventID) {
   if (isLegacyData(event)) {
-    return String(event.endgame.serial_event_id);
+    return String(_.get(event, queryEventID.legacyFieldPath));
   }
-  return event.event.id;
+  return String(_.get(event, queryEventID.fieldPath));
 }
 
 export function extractEntityID(event: ResolverEvent) {

@@ -8,7 +8,7 @@ import { ResolverQuery } from './base';
 export class ChildrenQuery extends ResolverQuery {
   protected legacyQuery(endpointID: string, uniquePIDs: string[], index: string) {
     return {
-      body: this.paginateBy('endgame.serial_event_id', {
+      body: this.paginateBy(ResolverQuery.LegacyEventIDField, {
         query: {
           bool: {
             filter: [
@@ -38,7 +38,7 @@ export class ChildrenQuery extends ResolverQuery {
 
   protected query(entityIDs: string[], index: string) {
     return {
-      body: this.paginateBy('event.id', {
+      body: this.paginateBy(ResolverQuery.EventIDField, {
         query: {
           bool: {
             filter: [

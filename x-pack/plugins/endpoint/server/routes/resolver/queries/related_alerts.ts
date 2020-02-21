@@ -5,11 +5,21 @@
  */
 import { ResolverQuery } from './base';
 import { JsonObject } from '../../../../../../../src/plugins/kibana_utils/public';
+import { PaginationParams } from '../utils/pagination';
 
 export class RelatedAlertsQuery extends ResolverQuery {
+  public static LegacyEventIDField = 'endgame.metadata.message_id';
+
+  constructor(endpointID?: string, pagination?: PaginationParams) {
+    super(endpointID, pagination, {
+      legacyFieldPath: RelatedAlertsQuery.LegacyEventIDField,
+      fieldPath: ResolverQuery.EventIDField,
+    });
+  }
+
   protected legacyQuery(endpointID: string, uniquePIDs: string[], index: string): JsonObject {
     return {
-      body: this.paginateBy('endgame.metadata.message_id', {
+      body: this.paginateBy(RelatedAlertsQuery.LegacyEventIDField, {
         query: {
           bool: {
             filter: [
@@ -32,7 +42,7 @@ export class RelatedAlertsQuery extends ResolverQuery {
 
   protected query(entityIDs: string[], index: string): JsonObject {
     return {
-      body: this.paginateBy('event.id', {
+      body: this.paginateBy(ResolverQuery.EventIDField, {
         query: {
           bool: {
             filter: [
