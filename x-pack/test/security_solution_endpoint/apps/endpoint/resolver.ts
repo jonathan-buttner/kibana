@@ -13,7 +13,7 @@ export default function ({ getPageObjects, getService }: FtrProviderContext) {
   const esArchiver = getService('esArchiver');
   const browser = getService('browser');
 
-  describe('Endpoint Event Resolver', function () {
+  describe.only('Endpoint Event Resolver', function () {
     before(async () => {
       await pageObjects.hosts.navigateToSecurityHostsPage();
       await pageObjects.common.dismissBanner();
