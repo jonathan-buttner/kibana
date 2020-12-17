@@ -41,7 +41,7 @@ import { useColors } from '../use_colors';
 import { ResolverAction } from '../../store/actions';
 import { useFormattedDate } from './use_formatted_date';
 import { CopyablePanelField } from './copyable_panel_field';
-import { PanelContentCallOut, PanelContentInfo } from './panel_content_error';
+import { PanelContentCallOut } from './panel_content_error';
 
 interface ProcessTableView {
   name?: string;

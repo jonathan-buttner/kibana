@@ -15,7 +15,6 @@ import {
   EuiHorizontalRule,
   EuiFlexItem,
   EuiButton,
-  EuiCallOut,
 } from '@elastic/eui';
 import { useSelector } from 'react-redux';
 import { FormattedMessage } from '@kbn/i18n/react';
