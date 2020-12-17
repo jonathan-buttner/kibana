@@ -41,6 +41,7 @@ import { useColors } from '../use_colors';
 import { ResolverAction } from '../../store/actions';
 import { useFormattedDate } from './use_formatted_date';
 import { CopyablePanelField } from './copyable_panel_field';
+import { PanelContentCallOut, PanelContentInfo } from './panel_content_error';
 
 interface ProcessTableView {
   name?: string;
@@ -117,12 +118,17 @@ export const NodeList = memo(() => {
     ];
   }, []);
 
+  const isTableEmpty = numberOfProcesses <= 0;
   const children = useSelector(selectors.hasMoreChildren);
   const ancestors = useSelector(selectors.hasMoreAncestors);
   const generations = useSelector(selectors.hasMoreGenerations);
   const showWarning = children === true || ancestors === true || generations === true;
   const rowProps = useMemo(() => ({ 'data-test-subj': 'resolver:node-list:item' }), []);
-  return (
+  return isTableEmpty ? (
+    <StyledPanel>
+      <PanelContentCallOut />
+    </StyledPanel>
+  ) : (
     <StyledPanel>
       <Breadcrumbs breadcrumbs={breadcrumbs} />
       {showWarning && <LimitWarning numberDisplayed={numberOfProcesses} />}

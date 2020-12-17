@@ -171,17 +171,29 @@ export const dataReducer: Reducer<DataState, ResolverAction> = (state = initialS
       return state;
     }
   } else if (action.type === 'serverFailedToReturnNodeEventsInCategory') {
+    const errorPayload = {
+      nodeID: action.payload.nodeID,
+      cursor: action.payload.cursor,
+      eventCategory: action.payload.eventCategory,
+      error: true,
+    };
     if (state.nodeEventsInCategory) {
       const nextState: DataState = {
         ...state,
         nodeEventsInCategory: {
           ...state.nodeEventsInCategory,
-          error: true,
+          ...errorPayload,
         },
       };
       return nextState;
     } else {
-      return state;
+      return {
+        ...state,
+        nodeEventsInCategory: {
+          events: [],
+          ...errorPayload,
+        },
+      };
     }
   } else if (action.type === 'serverReturnedNodeData') {
     const updatedNodeData = nodeDataModel.updateWithReceivedNodes({

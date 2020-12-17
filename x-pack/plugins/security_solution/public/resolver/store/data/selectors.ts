@@ -70,6 +70,13 @@ const resolverTreeResponse = (state: DataState): NewResolverTree | undefined => 
   return state.tree?.lastResponse?.successful ? state.tree?.lastResponse.result : undefined;
 };
 
+export const isTreeEmpty: (state: DataState) => boolean = createSelector(
+  resolverTreeResponse,
+  (resolverTree) => {
+    return resolverTree === undefined || resolverTree.nodes.length <= 0;
+  }
+);
+
 /**
  * If we received a NewResolverTree, return the schema associated with that tree, otherwise return undefined.
  * As of writing, this is only used for the info popover in the graph_controls panel
@@ -116,23 +123,6 @@ export const nodeDataForID: (
 });
 
 /**
- * Returns a function that can be called to retrieve the state of the node, running, loading, or terminated.
- */
-export const nodeDataStatus: (state: DataState) => (id: string) => NodeDataStatus = createSelector(
-  nodeDataForID,
-  (nodeInfo) => {
-    return (id: string) => {
-      const info = nodeInfo(id);
-      if (!info) {
-        return 'loading';
-      }
-
-      return info.status;
-    };
-  }
-);
-
-/**
  * Nodes that will be graphed.
  */
 export const graphableNodes = createSelector(resolverTreeResponse, function (treeResponse?) {
@@ -158,6 +148,41 @@ const tree = createSelector(graphableNodes, originID, function indexedProcessTre
 ) {
   return indexedProcessTreeModel.factory(graphableNodes, currentOriginID);
 });
+
+/**
+ * Given a nodeID (aka entity_id) get the indexed process event.
+ * Legacy functions take process events instead of nodeID, use this to get
+ * process events for them.
+ */
+export const graphNodeForID: (
+  state: DataState
+) => (nodeID: string) => ResolverNode | null = createSelector(
+  tree,
+  (indexedProcessTree) => (nodeID: string) => {
+    return indexedProcessTreeModel.treeNode(indexedProcessTree, nodeID);
+  }
+);
+
+/**
+ * Returns a function that can be called to retrieve the state of the node, running, loading, or terminated.
+ */
+export const nodeDataStatus: (state: DataState) => (id: string) => NodeDataStatus = createSelector(
+  nodeDataForID,
+  graphNodeForID,
+  (nodeInfo, graphNode) => {
+    return (id: string) => {
+      const info = nodeInfo(id);
+      if (!info) {
+        // if the id doesn't exist in the graph then this must be an error
+        // otherwise we are possible in a state where the user clicked the refresh button
+        // on a specific node and we are waiting for the middleware to mark that it is being requested
+        return graphNode(id) === null ? 'error' : 'loading';
+      }
+
+      return info.status;
+    };
+  }
+);
 
 /**
  * This returns a map of nodeIDs to the associated stats provided by the datasource.
@@ -368,20 +393,6 @@ export const layout: (state: DataState) => IsometricTaxiLayout = createSelector(
     // Take the origin position, and multipy it by -1, then move the layout by that amount.
     // This should center the layout around the origin.
     return isometricTaxiLayoutModel.translated(taxiLayout, vector2.scale(originPosition, -1));
-  }
-);
-
-/**
- * Given a nodeID (aka entity_id) get the indexed process event.
- * Legacy functions take process events instead of nodeID, use this to get
- * process events for them.
- */
-export const graphNodeForID: (
-  state: DataState
-) => (nodeID: string) => ResolverNode | null = createSelector(
-  tree,
-  (indexedProcessTree) => (nodeID: string) => {
-    return indexedProcessTreeModel.treeNode(indexedProcessTree, nodeID);
   }
 );
 

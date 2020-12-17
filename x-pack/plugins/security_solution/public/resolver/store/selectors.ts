@@ -169,6 +169,11 @@ function uiStateSelector(state: ResolverState) {
 }
 
 /**
+ * Whether the tree has no nodes in it
+ */
+export const isTreeEmpty = composeSelectors(dataStateSelector, dataSelectors.isTreeEmpty);
+
+/**
  * Whether or not the resolver is pending fetching data
  */
 export const isTreeLoading = composeSelectors(dataStateSelector, dataSelectors.isTreeLoading);

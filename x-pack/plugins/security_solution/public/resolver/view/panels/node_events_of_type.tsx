@@ -31,6 +31,21 @@ import { DescriptiveName } from './descriptive_name';
 import { useLinkProps } from '../use_link_props';
 import { useResolverDispatch } from '../use_resolver_dispatch';
 import { useFormattedDate } from './use_formatted_date';
+import { PanelContentInfo } from './panel_content_error';
+
+const errorTitle = i18n.translate(
+  'xpack.securitySolution.endpoint.resolver.panel.nodeEventsByType.title',
+  {
+    defaultMessage: 'Event Category Error',
+  }
+);
+
+const errorMessage = i18n.translate(
+  'xpack.securitySolution.endpoint.resolver.panel.nodeEventsByType.message',
+  {
+    defaultMessage: 'An error occurred when fetching the events.',
+  }
+);
 
 /**
  * Render a list of events that are related to `nodeID` and that have a category of `eventType`.
@@ -45,48 +60,26 @@ export const NodeEventsInCategory = memo(function ({
   const node = useSelector((state: ResolverState) => selectors.graphNodeForID(state)(nodeID));
   const isLoading = useSelector(selectors.isLoadingNodeEventsInCategory);
   const hasError = useSelector(selectors.hadErrorLoadingNodeEventsInCategory);
+  const isTreeEmpty = useSelector((state: ResolverState) => selectors.isTreeEmpty(state));
 
-  return (
-    <>
-      {isLoading ? (
-        <StyledPanel>
-          <PanelLoading />
-        </StyledPanel>
-      ) : (
-        <StyledPanel data-test-subj="resolver:panel:events-in-category">
-          {hasError || !node ? (
-            <EuiCallOut
-              title={i18n.translate(
-                'xpack.securitySolution.endpoint.resolver.panel.nodeEventsByType.errorPrimary',
-                {
-                  defaultMessage: 'Unable to load events.',
-                }
-              )}
-              color="danger"
-              iconType="alert"
-              data-test-subj="resolver:nodeEventsInCategory:error"
-            >
-              <p>
-                <FormattedMessage
-                  id="xpack.securitySolution.endpoint.resolver.panel.nodeEventsByType.errorSecondary"
-                  defaultMessage="An error occurred when fetching the events."
-                />
-              </p>
-            </EuiCallOut>
-          ) : (
-            <>
-              <NodeEventsInCategoryBreadcrumbs
-                nodeName={node.name}
-                eventCategory={eventCategory}
-                nodeID={nodeID}
-              />
-              <EuiSpacer size="l" />
-              <NodeEventList eventCategory={eventCategory} nodeID={nodeID} />
-            </>
-          )}
-        </StyledPanel>
-      )}
-    </>
+  return isLoading ? (
+    <StyledPanel>
+      <PanelLoading />
+    </StyledPanel>
+  ) : isTreeEmpty ? (
+    <PanelContentInfo />
+  ) : hasError || !node ? (
+    <PanelContentInfo type="error" title={errorTitle} translatedMessage={errorMessage} />
+  ) : (
+    <StyledPanel data-test-subj="resolver:panel:events-in-category">
+      <NodeEventsInCategoryBreadcrumbs
+        nodeName={node.name}
+        eventCategory={eventCategory}
+        nodeID={nodeID}
+      />
+      <EuiSpacer size="l" />
+      <NodeEventList eventCategory={eventCategory} nodeID={nodeID} />
+    </StyledPanel>
   );
 });
 

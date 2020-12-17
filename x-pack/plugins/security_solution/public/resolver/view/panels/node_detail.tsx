@@ -29,7 +29,7 @@ import { PanelLoading } from './panel_loading';
 import { StyledPanel } from '../styles';
 import { useLinkProps } from '../use_link_props';
 import { useFormattedDate } from './use_formatted_date';
-import { PanelContentError } from './panel_content_error';
+import { PanelContentInfo } from './panel_content_error';
 
 const StyledCubeForProcess = styled(CubeForProcess)`
   position: relative;
@@ -37,27 +37,35 @@ const StyledCubeForProcess = styled(CubeForProcess)`
 `;
 
 const nodeDetailError = i18n.translate('xpack.securitySolution.resolver.panel.nodeDetail.Error', {
-  defaultMessage: 'Node details were unable to be retrieved',
+  defaultMessage: 'Node details were unable to be retrieved.',
 });
+
+const nodeDetailTitle = i18n.translate(
+  'xpack.securitySolution.resolver.panel.nodeDetail.title.Error',
+  {
+    defaultMessage: 'Node Details Error',
+  }
+);
 
 export const NodeDetail = memo(function ({ nodeID }: { nodeID: string }) {
   const processEvent = useSelector((state: ResolverState) =>
     nodeDataModel.firstEvent(selectors.nodeDataForID(state)(nodeID))
   );
   const nodeStatus = useSelector((state: ResolverState) => selectors.nodeDataStatus(state)(nodeID));
+  const isTreeEmpty = useSelector((state: ResolverState) => selectors.isTreeEmpty(state));
 
   return nodeStatus === 'loading' ? (
     <StyledPanel>
       <PanelLoading />
     </StyledPanel>
+  ) : isTreeEmpty ? (
+    <PanelContentInfo />
   ) : processEvent ? (
     <StyledPanel data-test-subj="resolver:panel:node-detail">
       <NodeDetailView nodeID={nodeID} processEvent={processEvent} />
     </StyledPanel>
   ) : (
-    <StyledPanel>
-      <PanelContentError translatedErrorMessage={nodeDetailError} />
-    </StyledPanel>
+    <PanelContentInfo type="error" title={nodeDetailTitle} translatedMessage={nodeDetailError} />
   );
 });
 

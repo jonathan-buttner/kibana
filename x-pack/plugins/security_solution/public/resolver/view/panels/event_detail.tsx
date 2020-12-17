@@ -22,19 +22,25 @@ import { Breadcrumbs } from './breadcrumbs';
 import * as eventModel from '../../../../common/endpoint/models/event';
 import * as selectors from '../../store/selectors';
 import { PanelLoading } from './panel_loading';
-import { PanelContentError } from './panel_content_error';
+import { PanelContentInfo } from './panel_content_error';
 import { ResolverState } from '../../types';
 import { DescriptiveName } from './descriptive_name';
 import { useLinkProps } from '../use_link_props';
 import { SafeResolverEvent } from '../../../../common/endpoint/types';
 import { deepObjectEntries } from './deep_object_entries';
 import { useFormattedDate } from './use_formatted_date';
-import * as nodeDataModel from '../../models/node_data';
 
 const eventDetailRequestError = i18n.translate(
   'xpack.securitySolution.resolver.panel.eventDetail.requestError',
   {
-    defaultMessage: 'Event details were unable to be retrieved',
+    defaultMessage: 'Event details were unable to be retrieved.',
+  }
+);
+
+const eventDetailsTitle = i18n.translate(
+  'xpack.securitySolution.resolver.panel.eventDetail.title.requestError',
+  {
+    defaultMessage: 'Event Details Error',
   }
 );
 
@@ -48,8 +54,8 @@ export const EventDetail = memo(function EventDetail({
 }) {
   const isEventLoading = useSelector(selectors.isCurrentRelatedEventLoading);
   const isTreeLoading = useSelector(selectors.isTreeLoading);
-  const processEvent = useSelector((state: ResolverState) =>
-    nodeDataModel.firstEvent(selectors.nodeDataForID(state)(nodeID))
+  const processName = useSelector(
+    (state: ResolverState) => selectors.graphNodeForID(state)(nodeID)?.name
   );
   const nodeStatus = useSelector((state: ResolverState) => selectors.nodeDataStatus(state)(nodeID));
 
@@ -58,21 +64,27 @@ export const EventDetail = memo(function EventDetail({
 
   const event = useSelector(selectors.currentRelatedEventData);
 
+  const isTreeEmpty = useSelector((state: ResolverState) => selectors.isTreeEmpty(state));
+
   return isLoading ? (
     <StyledPanel>
       <PanelLoading />
     </StyledPanel>
+  ) : isTreeEmpty ? (
+    <PanelContentInfo />
   ) : event ? (
     <EventDetailContents
       nodeID={nodeID}
       event={event}
-      processEvent={processEvent}
+      nodeName={processName}
       eventType={eventType}
     />
   ) : (
-    <StyledPanel>
-      <PanelContentError translatedErrorMessage={eventDetailRequestError} />
-    </StyledPanel>
+    <PanelContentInfo
+      type="error"
+      title={eventDetailsTitle}
+      translatedMessage={eventDetailRequestError}
+    />
   );
 });
 
@@ -84,7 +96,7 @@ const EventDetailContents = memo(function ({
   nodeID,
   event,
   eventType,
-  processEvent,
+  nodeName,
 }: {
   nodeID: string;
   event: SafeResolverEvent;
@@ -92,7 +104,7 @@ const EventDetailContents = memo(function ({
    * Event type to use in the breadcrumbs
    */
   eventType: string;
-  processEvent: SafeResolverEvent | undefined;
+  nodeName: string | undefined;
 }) {
   const timestamp = eventModel.timestampSafeVersion(event);
   const formattedDate =
@@ -100,8 +112,6 @@ const EventDetailContents = memo(function ({
     i18n.translate('xpack.securitySolution.enpdoint.resolver.panelutils.noTimestampRetrieved', {
       defaultMessage: 'No timestamp retrieved',
     });
-
-  const nodeName = processEvent ? eventModel.processNameSafeVersion(processEvent) : null;
 
   return (
     <StyledPanel data-test-subj="resolver:panel:event-detail">
