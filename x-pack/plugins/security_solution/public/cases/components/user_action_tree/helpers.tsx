@@ -12,6 +12,7 @@ import {
   CaseFullExternalService,
   ActionConnector,
   CaseStatuses,
+  CommentType,
 } from '../../../../../case/common/api';
 import { CaseUserActions } from '../../containers/types';
 import { CaseServices } from '../../containers/use_get_case_user_actions';
@@ -26,6 +27,7 @@ import { UserActionShowAlert } from './user_action_show_alert';
 import * as i18n from './translations';
 import { Alert } from '../case_view';
 import { AlertCommentEvent } from './user_action_alert_comment_event';
+import { InvestigateInTimelineAction } from '../../../detections/components/alerts_table/timeline_actions/investigate_in_timeline_action';
 
 interface LabelTitle {
   action: CaseUserActions;
@@ -197,10 +199,14 @@ export const getUpdateAction = ({
 export const getAlertComment = ({
   action,
   alert,
+  alertsCount,
+  commentType,
   onShowAlertDetails,
 }: {
   action: CaseUserActions;
   alert: Alert | undefined;
+  alertsCount?: number;
+  commentType?: CommentType;
   onShowAlertDetails: (alertId: string, index: string) => void;
 }): EuiCommentProps => {
   return {
@@ -212,7 +218,7 @@ export const getAlertComment = ({
     ),
     className: 'comment-alert',
     type: 'update',
-    event: <AlertCommentEvent alert={alert} />,
+    event: <AlertCommentEvent alert={alert} alertsCount={alertsCount} commentType={commentType} />,
     'data-test-subj': `${action.actionField[0]}-${action.action}-action-${action.actionId}`,
     timestamp: <UserActionTimestamp createdAt={action.actionAt} />,
     timelineIcon: 'bell',
@@ -222,19 +228,28 @@ export const getAlertComment = ({
           <UserActionCopyLink id={action.actionId} />
         </EuiFlexItem>
         <EuiFlexItem>
-          {alert != null ? (
+          {alert != null && commentType !== CommentType.generatedAlert && (
             <UserActionShowAlert
               id={action.actionId}
               alert={alert}
               onShowAlertDetails={onShowAlertDetails}
             />
-          ) : (
+          )}
+          {alert == null && commentType !== CommentType.generatedAlert && (
             <EuiIconTip
               aria-label={i18n.ALERT_NOT_FOUND_TOOLTIP}
               size="l"
               type="alert"
               color="danger"
               content={i18n.ALERT_NOT_FOUND_TOOLTIP}
+            />
+          )}
+          {commentType === CommentType.generatedAlert && (
+            <InvestigateInTimelineAction
+              ariaLabel={i18n.SEND_ALERT_TO_TIMELINE}
+              key="investigate-in-timeline"
+              ecsRowData={ecsData}
+              nonEcsRowData={data}
             />
           )}
         </EuiFlexItem>

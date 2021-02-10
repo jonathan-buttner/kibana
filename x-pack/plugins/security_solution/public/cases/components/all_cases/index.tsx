@@ -7,7 +7,7 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-  EuiBasicTable,
+  EuiBasicTable as _EuiBasicTable,
   EuiContextMenuPanel,
   EuiEmptyPrompt,
   EuiFlexGroup,
@@ -53,6 +53,7 @@ import { SecurityPageName } from '../../../app/types';
 import { useKibana } from '../../../common/lib/kibana';
 import { APP_ID } from '../../../../common/constants';
 import { Stats } from '../status';
+import { getExpandedRowMap } from './expanded_row';
 
 const Div = styled.div`
   margin-top: ${({ theme }) => theme.eui.paddingSizes.m};
@@ -82,6 +83,14 @@ const getSortField = (field: string): SortFieldCase => {
   }
   return SortFieldCase.createdAt;
 };
+
+const EuiBasicTable: any = _EuiBasicTable; // eslint-disable-line @typescript-eslint/no-explicit-any
+const BasicTable = styled(EuiBasicTable)`
+  .euiTableRow-isExpandedRow.euiTableRow-isSelectable .euiTableCellContent {
+    padding: 8px 0 8px 32px;
+  }
+`;
+BasicTable.displayName = 'BasicTable';
 
 interface AllCasesProps {
   onRowClick?: (theCase?: Case) => void;
@@ -315,6 +324,16 @@ export const AllCases = React.memo<AllCasesProps>(
       () => getCasesColumns(userCanCrud ? actions : [], filterOptions.status, isModal),
       [actions, filterOptions.status, userCanCrud, isModal]
     );
+
+    const itemIdToExpandedRowMap = useMemo(
+      () =>
+        getExpandedRowMap({
+          columns: memoizedGetCasesColumns,
+          data: data.cases,
+        }),
+      [data.cases, memoizedGetCasesColumns]
+    );
+
     const memoizedPagination = useMemo(
       () => ({
         pageIndex: queryParams.page - 1,
@@ -330,7 +349,10 @@ export const AllCases = React.memo<AllCasesProps>(
     };
 
     const euiBasicTableSelectionProps = useMemo<EuiTableSelectionType<Case>>(
-      () => ({ onSelectionChange: setSelectedCases }),
+      () => ({
+        selectable: (theCase) => isEmpty(theCase.subCases),
+        onSelectionChange: setSelectedCases,
+      }),
       [setSelectedCases]
     );
     const isCasesLoading = useMemo(
@@ -472,12 +494,13 @@ export const AllCases = React.memo<AllCasesProps>(
                   )}
                 </UtilityBarSection>
               </UtilityBar>
-              <EuiBasicTable
+              <BasicTable
                 columns={memoizedGetCasesColumns}
                 data-test-subj="cases-table"
                 isSelectable={userCanCrud && !isModal}
                 itemId="id"
                 items={data.cases}
+                itemIdToExpandedRowMap={itemIdToExpandedRowMap}
                 noItemsMessage={
                   <EuiEmptyPrompt
                     title={<h3>{i18n.NO_CASES}</h3>}

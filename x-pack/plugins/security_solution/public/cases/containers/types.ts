@@ -20,6 +20,8 @@ import {
 
 export { CaseConnector, ActionConnector } from '../../../../case/common/api';
 
+export type AllCaseType = AssociationType & CaseType;
+
 export type Comment = CommentRequest & {
   associationType: AssociationType;
   id: string;
@@ -52,7 +54,8 @@ export interface CaseExternalService {
   externalTitle: string;
   externalUrl: string;
 }
-export interface Case {
+
+interface BasicCase {
   id: string;
   closedAt: string | null;
   closedBy: ElasticUser | null;
@@ -72,6 +75,15 @@ export interface Case {
   updatedBy: ElasticUser | null;
   version: string;
   settings: CaseAttributes['settings'];
+}
+
+export interface SubCase extends BasicCase {
+  caseParentId: string;
+  associationType: AssociationType;
+}
+
+export interface Case extends BasicCase {
+  subCases?: SubCase[] | null;
 }
 
 export interface QueryParams {
