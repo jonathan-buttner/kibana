@@ -31,7 +31,7 @@ export default ({ getService }: FtrProviderContext): void => {
   const supertest = getService('supertest');
   const es = getService('es');
 
-  describe('delete_cases', () => {
+  describe.only('delete_cases', () => {
     afterEach(async () => {
       await deleteCasesByESQuery(es);
       await deleteComments(es);

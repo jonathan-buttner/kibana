@@ -10,7 +10,15 @@ import { Plugin, CoreSetup } from 'kibana/server';
 import { PluginSetupContract as FeaturesPluginSetup } from '../../../../../../../plugins/features/server';
 import { SpacesPluginStart } from '../../../../../../../plugins/spaces/server';
 import { SecurityPluginStart } from '../../../../../../../plugins/security/server';
-import { SAVED_OBJECT_TYPES as casesSavedObjectTypes } from '../../../../../../../plugins/cases/common/constants';
+
+const soTypes = [
+  'cases',
+  'cases-connector-mappings',
+  'cases-sub-case',
+  'cases-user-actions',
+  'cases-comments',
+  'cases-configure',
+];
 
 export interface FixtureSetupDeps {
   features: FeaturesPluginSetup;
@@ -37,7 +45,7 @@ export class FixturePlugin implements Plugin<void, void, FixtureSetupDeps, Fixtu
             all: ['observabilityFixture'],
           },
           savedObject: {
-            all: ['alert', ...casesSavedObjectTypes],
+            all: ['alert', ...soTypes],
             read: [],
           },
           ui: [],
@@ -49,7 +57,7 @@ export class FixturePlugin implements Plugin<void, void, FixtureSetupDeps, Fixtu
           },
           savedObject: {
             all: [],
-            read: [...casesSavedObjectTypes],
+            read: [...soTypes],
           },
           ui: [],
         },
