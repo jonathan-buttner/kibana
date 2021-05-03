@@ -10,15 +10,15 @@
 import expect from '@kbn/expect';
 import * as st from 'supertest';
 import supertestAsPromised from 'supertest-as-promised';
-import { FtrProviderContext } from '../../../../common/ftr_provider_context';
-import { ObjectRemover as ActionsRemover } from '../../../../../alerting_api_integration/common/lib';
+import { FtrProviderContext } from '../../../common/ftr_provider_context';
+import { ObjectRemover as ActionsRemover } from '../../../../alerting_api_integration/common/lib';
 
 import {
   postCaseReq,
   defaultUser,
   postCommentUserReq,
   getPostCaseRequest,
-} from '../../../../common/lib/mock';
+} from '../../../common/lib/mock';
 import {
   getConfigurationRequest,
   getServiceNowConnector,
@@ -32,11 +32,11 @@ import {
   getAllUserAction,
   removeServerGeneratedPropertiesFromUserAction,
   deleteAllCaseItems,
-} from '../../../../common/lib/utils';
+} from '../../../common/lib/utils';
 import {
   ExternalServiceSimulator,
   getExternalServiceSimulatorPath,
-} from '../../../../../alerting_api_integration/common/fixtures/plugins/actions_simulators/server/plugin';
+} from '../../../../alerting_api_integration/common/fixtures/plugins/actions_simulators/server/plugin';
 import {
   CaseConnector,
   CasePostRequest,
@@ -44,7 +44,7 @@ import {
   CaseStatuses,
   CaseUserActionResponse,
   ConnectorTypes,
-} from '../../../../../../plugins/cases/common/api';
+} from '../../../../../plugins/cases/common/api';
 import {
   globalRead,
   noKibanaPrivileges,
@@ -53,11 +53,10 @@ import {
   secOnly,
   secOnlyRead,
   superUser,
-} from '../../../../common/lib/authentication/users';
-import { User } from '../../../../common/lib/authentication/types';
+} from '../../../common/lib/authentication/users';
+import { User } from '../../../common/lib/authentication/types';
 
-// eslint-disable-next-line import/no-default-export
-export default ({ getService }: FtrProviderContext): void => {
+export function pushCaseTests({ getService }: FtrProviderContext, space?: string) {
   const supertest = getService('supertest');
   const kibanaServer = getService('kibanaServer');
   const es = getService('es');
@@ -80,12 +79,12 @@ export default ({ getService }: FtrProviderContext): void => {
     const createCaseWithConnector = async ({
       testAgent = supertest,
       configureReq = {},
-      auth = { user: superUser, space: null },
+      auth = { user: superUser, space: undefined },
       createCaseReq = getPostCaseRequest(),
     }: {
       testAgent?: st.SuperTest<supertestAsPromised.Test>;
       configureReq?: Record<string, unknown>;
-      auth?: { user: User; space: string | null };
+      auth?: { user: User; space: string | undefined };
       createCaseReq?: CasePostRequest;
     } = {}): Promise<{
       postedCase: CaseResponse;
@@ -356,4 +355,4 @@ export default ({ getService }: FtrProviderContext): void => {
       });
     });
   });
-};
+}

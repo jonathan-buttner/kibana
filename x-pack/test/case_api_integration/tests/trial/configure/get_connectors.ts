@@ -6,20 +6,19 @@
  */
 
 import expect from '@kbn/expect';
-import { FtrProviderContext } from '../../../../../common/ftr_provider_context';
+import { FtrProviderContext } from '../../../common/ftr_provider_context';
 
-import { CASE_CONFIGURE_CONNECTORS_URL } from '../../../../../../plugins/cases/common/constants';
-import { ObjectRemover as ActionsRemover } from '../../../../../alerting_api_integration/common/lib';
+import { CASE_CONFIGURE_CONNECTORS_URL } from '../../../../../plugins/cases/common/constants';
+import { ObjectRemover as ActionsRemover } from '../../../../alerting_api_integration/common/lib';
 import {
   getServiceNowConnector,
   getJiraConnector,
   getResilientConnector,
   createConnector,
   getServiceNowSIRConnector,
-} from '../../../../common/lib/utils';
+} from '../../../common/lib/utils';
 
-// eslint-disable-next-line import/no-default-export
-export default ({ getService }: FtrProviderContext): void => {
+export function getConnectorsTests({ getService }: FtrProviderContext, space?: string) {
   const supertest = getService('supertest');
   const actionsRemover = new ActionsRemover(supertest);
 
@@ -122,4 +121,4 @@ export default ({ getService }: FtrProviderContext): void => {
       ]);
     });
   });
-};
+}

@@ -6,14 +6,14 @@
  */
 
 import expect from '@kbn/expect';
-import { FtrProviderContext } from '../../../../../common/ftr_provider_context';
+import { FtrProviderContext } from '../../../common/ftr_provider_context';
 
 import {
   ExternalServiceSimulator,
   getExternalServiceSimulatorPath,
-} from '../../../../../alerting_api_integration/common/fixtures/plugins/actions_simulators/server/plugin';
+} from '../../../../alerting_api_integration/common/fixtures/plugins/actions_simulators/server/plugin';
 
-import { ObjectRemover as ActionsRemover } from '../../../../../alerting_api_integration/common/lib';
+import { ObjectRemover as ActionsRemover } from '../../../../alerting_api_integration/common/lib';
 import {
   getServiceNowConnector,
   createConnector,
@@ -22,11 +22,10 @@ import {
   getConfigurationRequest,
   removeServerGeneratedPropertiesFromSavedObject,
   getConfigurationOutput,
-} from '../../../../common/lib/utils';
-import { ConnectorTypes } from '../../../../../../plugins/cases/common/api';
+} from '../../../common/lib/utils';
+import { ConnectorTypes } from '../../../../../plugins/cases/common/api';
 
-// eslint-disable-next-line import/no-default-export
-export default ({ getService }: FtrProviderContext): void => {
+export function getConfigureTests({ getService }: FtrProviderContext, space?: string) {
   const supertest = getService('supertest');
   const actionsRemover = new ActionsRemover(supertest);
   const kibanaServer = getService('kibanaServer');
@@ -95,4 +94,4 @@ export default ({ getService }: FtrProviderContext): void => {
       );
     });
   });
-};
+}

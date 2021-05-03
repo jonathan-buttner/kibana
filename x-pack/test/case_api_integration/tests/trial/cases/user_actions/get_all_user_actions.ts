@@ -6,10 +6,10 @@
  */
 
 import expect from '@kbn/expect';
-import { FtrProviderContext } from '../../../../../../common/ftr_provider_context';
+import { FtrProviderContext } from '../../../../common/ftr_provider_context';
 
-import { CASE_CONFIGURE_URL, CASES_URL } from '../../../../../../../plugins/cases/common/constants';
-import { defaultUser, postCaseReq } from '../../../../../common/lib/mock';
+import { CASE_CONFIGURE_URL, CASES_URL } from '../../../../../../plugins/cases/common/constants';
+import { defaultUser, postCaseReq } from '../../../../common/lib/mock';
 import {
   deleteCasesByESQuery,
   deleteCasesUserActions,
@@ -17,16 +17,15 @@ import {
   deleteConfiguration,
   getConfigurationRequest,
   getServiceNowConnector,
-} from '../../../../../common/lib/utils';
+} from '../../../../common/lib/utils';
 
-import { ObjectRemover as ActionsRemover } from '../../../../../../alerting_api_integration/common/lib';
+import { ObjectRemover as ActionsRemover } from '../../../../../alerting_api_integration/common/lib';
 import {
   ExternalServiceSimulator,
   getExternalServiceSimulatorPath,
-} from '../../../../../../alerting_api_integration/common/fixtures/plugins/actions_simulators/server/plugin';
+} from '../../../../../alerting_api_integration/common/fixtures/plugins/actions_simulators/server/plugin';
 
-// eslint-disable-next-line import/no-default-export
-export default ({ getService }: FtrProviderContext): void => {
+export function getAllUserActionsTests({ getService }: FtrProviderContext, space?: string) {
   const supertest = getService('supertest');
   const es = getService('es');
   const actionsRemover = new ActionsRemover(supertest);
@@ -112,4 +111,4 @@ export default ({ getService }: FtrProviderContext): void => {
       expect(newValue.pushed_by).to.eql(defaultUser);
     });
   });
-};
+}

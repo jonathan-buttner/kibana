@@ -556,11 +556,21 @@ export const ensureSavedObjectIsAuthorized = (
   entities.forEach((entity) => expect(owners.includes(entity.owner)).to.be(true));
 };
 
+/**
+ * Utility function to return an auth object with the user as super user and the passed in space
+ */
+export const getSuperUserAndSpaceAuth = (space?: string) => {
+  return {
+    user: superUser,
+    space,
+  };
+};
+
 export const createCase = async (
   supertest: st.SuperTest<supertestAsPromised.Test>,
   params: CasePostRequest,
   expectedHttpCode: number = 200,
-  auth: { user: User; space: string | null } = { user: superUser, space: null }
+  auth: { user: User; space: string | undefined } = { user: superUser, space: undefined }
 ): Promise<CaseResponse> => {
   const { body: theCase } = await supertest
     .post(`${getSpaceUrlPrefix(auth.space)}${CASES_URL}`)
@@ -579,12 +589,12 @@ export const deleteCases = async ({
   supertest,
   caseIDs,
   expectedHttpCode = 204,
-  auth = { user: superUser, space: null },
+  auth = { user: superUser, space: undefined },
 }: {
   supertest: st.SuperTest<supertestAsPromised.Test>;
   caseIDs: string[];
   expectedHttpCode?: number;
-  auth?: { user: User; space: string | null };
+  auth?: { user: User; space: string | undefined };
 }) => {
   const { body } = await supertest
     .delete(`${getSpaceUrlPrefix(auth.space)}${CASES_URL}`)
@@ -603,13 +613,13 @@ export const createComment = async ({
   supertest,
   caseId,
   params,
-  auth = { user: superUser, space: null },
+  auth = { user: superUser, space: undefined },
   expectedHttpCode = 200,
 }: {
   supertest: st.SuperTest<supertestAsPromised.Test>;
   caseId: string;
   params: CommentRequest;
-  auth?: { user: User; space: string | null };
+  auth?: { user: User; space: string | undefined };
   expectedHttpCode?: number;
 }): Promise<CaseResponse> => {
   const { body: theCase } = await supertest
@@ -639,12 +649,12 @@ export const updateCase = async ({
   supertest,
   params,
   expectedHttpCode = 200,
-  auth = { user: superUser, space: null },
+  auth = { user: superUser, space: undefined },
 }: {
   supertest: st.SuperTest<supertestAsPromised.Test>;
   params: CasesPatchRequest;
   expectedHttpCode?: number;
-  auth?: { user: User; space: string | null };
+  auth?: { user: User; space: string | undefined };
 }): Promise<CaseResponse[]> => {
   const { body: cases } = await supertest
     .patch(`${getSpaceUrlPrefix(auth.space)}${CASES_URL}`)
@@ -660,12 +670,12 @@ export const getCaseUserActions = async ({
   supertest,
   caseID,
   expectedHttpCode = 200,
-  auth = { user: superUser, space: null },
+  auth = { user: superUser, space: undefined },
 }: {
   supertest: st.SuperTest<supertestAsPromised.Test>;
   caseID: string;
   expectedHttpCode?: number;
-  auth?: { user: User; space: string | null };
+  auth?: { user: User; space: string | undefined };
 }): Promise<CaseUserActionsResponse> => {
   const { body: userActions } = await supertest
     .get(`${getSpaceUrlPrefix(auth.space)}${getCaseUserActionUrl(caseID)}`)
@@ -679,13 +689,13 @@ export const deleteComment = async ({
   caseId,
   commentId,
   expectedHttpCode = 204,
-  auth = { user: superUser, space: null },
+  auth = { user: superUser, space: undefined },
 }: {
   supertest: st.SuperTest<supertestAsPromised.Test>;
   caseId: string;
   commentId: string;
   expectedHttpCode?: number;
-  auth?: { user: User; space: string | null };
+  auth?: { user: User; space: string | undefined };
 }): Promise<{} | Error> => {
   const { body: comment } = await supertest
     .delete(`${getSpaceUrlPrefix(auth.space)}${CASES_URL}/${caseId}/comments/${commentId}`)
@@ -701,12 +711,12 @@ export const deleteAllComments = async ({
   supertest,
   caseId,
   expectedHttpCode = 204,
-  auth = { user: superUser, space: null },
+  auth = { user: superUser, space: undefined },
 }: {
   supertest: st.SuperTest<supertestAsPromised.Test>;
   caseId: string;
   expectedHttpCode?: number;
-  auth?: { user: User; space: string | null };
+  auth?: { user: User; space: string | undefined };
 }): Promise<{} | Error> => {
   const { body: comment } = await supertest
     .delete(`${getSpaceUrlPrefix(auth.space)}${CASES_URL}/${caseId}/comments`)
@@ -722,11 +732,11 @@ export const getAllComments = async ({
   supertest,
   caseId,
   expectedHttpCode = 200,
-  auth = { user: superUser, space: null },
+  auth = { user: superUser, space: undefined },
 }: {
   supertest: st.SuperTest<supertestAsPromised.Test>;
   caseId: string;
-  auth?: { user: User; space: string | null };
+  auth?: { user: User; space: string | undefined };
   expectedHttpCode?: number;
 }): Promise<AllCommentsResponse> => {
   const { body: comments } = await supertest
@@ -742,13 +752,13 @@ export const getComment = async ({
   caseId,
   commentId,
   expectedHttpCode = 200,
-  auth = { user: superUser },
+  auth = { user: superUser, space: undefined },
 }: {
   supertest: st.SuperTest<supertestAsPromised.Test>;
   caseId: string;
   commentId: string;
   expectedHttpCode?: number;
-  auth?: { user: User; space?: string };
+  auth?: { user: User; space: string | undefined };
 }): Promise<CommentResponse> => {
   const { body: comment } = await supertest
     .get(`${getSpaceUrlPrefix(auth.space)}${CASES_URL}/${caseId}/comments/${commentId}`)
@@ -763,13 +773,13 @@ export const updateComment = async ({
   caseId,
   req,
   expectedHttpCode = 200,
-  auth = { user: superUser, space: null },
+  auth = { user: superUser, space: undefined },
 }: {
   supertest: st.SuperTest<supertestAsPromised.Test>;
   caseId: string;
   req: CommentPatchRequest;
   expectedHttpCode?: number;
-  auth?: { user: User; space: string | null };
+  auth?: { user: User; space: string | undefined };
 }): Promise<CaseResponse> => {
   const { body: res } = await supertest
     .patch(`${getSpaceUrlPrefix(auth.space)}${CASES_URL}/${caseId}/comments`)
@@ -785,12 +795,12 @@ export const getConfiguration = async ({
   supertest,
   query = { owner: 'securitySolutionFixture' },
   expectedHttpCode = 200,
-  auth = { user: superUser, space: null },
+  auth = { user: superUser, space: undefined },
 }: {
   supertest: st.SuperTest<supertestAsPromised.Test>;
   query?: Record<string, unknown>;
   expectedHttpCode?: number;
-  auth?: { user: User; space: string | null };
+  auth?: { user: User; space: string | undefined };
 }): Promise<CasesConfigurationsResponse> => {
   const { body: configuration } = await supertest
     .get(`${getSpaceUrlPrefix(auth.space)}${CASE_CONFIGURE_URL}`)
@@ -806,7 +816,7 @@ export const createConfiguration = async (
   supertest: st.SuperTest<supertestAsPromised.Test>,
   req: CasesConfigureRequest = getConfigurationRequest(),
   expectedHttpCode: number = 200,
-  auth: { user: User; space: string | null } = { user: superUser, space: null }
+  auth: { user: User; space: string | undefined } = { user: superUser, space: undefined }
 ): Promise<CasesConfigureResponse> => {
   const { body: configuration } = await supertest
     .post(`${getSpaceUrlPrefix(auth.space)}${CASE_CONFIGURE_URL}`)
@@ -826,12 +836,12 @@ export const createConnector = async ({
   supertest,
   req,
   expectedHttpCode = 200,
-  auth = { user: superUser, space: null },
+  auth = { user: superUser },
 }: {
   supertest: st.SuperTest<supertestAsPromised.Test>;
   req: Record<string, unknown>;
   expectedHttpCode?: number;
-  auth?: { user: User; space: string | null };
+  auth?: { user: User; space?: string };
 }): Promise<CreateConnectorResponse> => {
   const { body: connector } = await supertest
     .post(`${getSpaceUrlPrefix(auth.space)}/api/actions/connector`)
@@ -860,7 +870,7 @@ export const updateConfiguration = async (
   id: string,
   req: CasesConfigurePatch,
   expectedHttpCode: number = 200,
-  auth: { user: User; space: string | null } = { user: superUser, space: null }
+  auth: { user: User; space: string | undefined } = { user: superUser, space: undefined }
 ): Promise<CasesConfigureResponse> => {
   const { body: configuration } = await supertest
     .patch(`${getSpaceUrlPrefix(auth.space)}${CASE_CONFIGURE_URL}/${id}`)
@@ -875,11 +885,11 @@ export const updateConfiguration = async (
 export const getAllCasesStatuses = async ({
   supertest,
   expectedHttpCode = 200,
-  auth = { user: superUser, space: null },
+  auth = { user: superUser, space: undefined },
 }: {
   supertest: st.SuperTest<supertestAsPromised.Test>;
   expectedHttpCode?: number;
-  auth?: { user: User; space: string | null };
+  auth?: { user: User; space: string | undefined };
 }): Promise<CasesStatusResponse> => {
   const { body: statuses } = await supertest
     .get(`${getSpaceUrlPrefix(auth.space)}${CASE_STATUS_URL}`)
@@ -895,13 +905,13 @@ export const getCase = async ({
   caseId,
   includeComments = false,
   expectedHttpCode = 200,
-  auth = { user: superUser, space: null },
+  auth = { user: superUser, space: undefined },
 }: {
   supertest: st.SuperTest<supertestAsPromised.Test>;
   caseId: string;
   includeComments?: boolean;
   expectedHttpCode?: number;
-  auth?: { user: User; space: string | null };
+  auth?: { user: User; space: string | undefined };
 }): Promise<CaseResponse> => {
   const { body: theCase } = await supertest
     .get(
@@ -918,12 +928,12 @@ export const findCases = async ({
   supertest,
   query = {},
   expectedHttpCode = 200,
-  auth = { user: superUser, space: null },
+  auth = { user: superUser, space: undefined },
 }: {
   supertest: st.SuperTest<supertestAsPromised.Test>;
   query?: Record<string, unknown>;
   expectedHttpCode?: number;
-  auth?: { user: User; space: string | null };
+  auth?: { user: User; space: string | undefined };
 }): Promise<CasesFindResponse> => {
   const { body: res } = await supertest
     .get(`${getSpaceUrlPrefix(auth.space)}${CASES_URL}/_find`)
@@ -940,12 +950,12 @@ export const getTags = async ({
   supertest,
   query = {},
   expectedHttpCode = 200,
-  auth = { user: superUser, space: null },
+  auth = { user: superUser, space: undefined },
 }: {
   supertest: st.SuperTest<supertestAsPromised.Test>;
   query?: Record<string, unknown>;
   expectedHttpCode?: number;
-  auth?: { user: User; space: string | null };
+  auth?: { user: User; space: string | undefined };
 }): Promise<CasesFindResponse> => {
   const { body: res } = await supertest
     .get(`${getSpaceUrlPrefix(auth.space)}${CASE_TAGS_URL}`)
@@ -961,12 +971,12 @@ export const getReporters = async ({
   supertest,
   query = {},
   expectedHttpCode = 200,
-  auth = { user: superUser, space: null },
+  auth = { user: superUser, space: undefined },
 }: {
   supertest: st.SuperTest<supertestAsPromised.Test>;
   query?: Record<string, unknown>;
   expectedHttpCode?: number;
-  auth?: { user: User; space: string | null };
+  auth?: { user: User; space: string | undefined };
 }): Promise<CasesFindResponse> => {
   const { body: res } = await supertest
     .get(`${getSpaceUrlPrefix(auth.space)}${CASE_REPORTERS_URL}`)
@@ -983,13 +993,13 @@ export const pushCase = async ({
   caseId,
   connectorId,
   expectedHttpCode = 200,
-  auth = { user: superUser, space: null },
+  auth = { user: superUser, space: undefined },
 }: {
   supertest: st.SuperTest<supertestAsPromised.Test>;
   caseId: string;
   connectorId: string;
   expectedHttpCode?: number;
-  auth?: { user: User; space: string | null };
+  auth?: { user: User; space: string | undefined };
 }): Promise<CaseResponse> => {
   const { body: res } = await supertest
     .post(`${getSpaceUrlPrefix(auth.space)}${CASES_URL}/${caseId}/connector/${connectorId}/_push`)

@@ -23,7 +23,7 @@ export default ({ loadTestFile, getService }: FtrProviderContext): void => {
     });
 
     // Basic
-    loadTestFile(require.resolve('./cases/push_case'));
+    loadTestFile(require.resolve('../../../tests/basic'));
 
     // Common
     loadTestFile(require.resolve('../common'));

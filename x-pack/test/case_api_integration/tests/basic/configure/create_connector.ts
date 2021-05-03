@@ -5,16 +5,25 @@
  * 2.0.
  */
 
-import { createConnector, getServiceNowConnector } from '../../../../common/lib/utils';
-import { FtrProviderContext } from '../../../../common/ftr_provider_context';
+import {
+  createConnector,
+  getServiceNowConnector,
+  getSuperUserAndSpaceAuth,
+} from '../../../common/lib/utils';
+import { FtrProviderContext } from '../../../common/ftr_provider_context';
 
-// eslint-disable-next-line import/no-default-export
-export default function serviceNow({ getService }: FtrProviderContext) {
+export function createConnectorTests({ getService }: FtrProviderContext, space?: string) {
   const supertest = getService('supertest');
+  const auth = getSuperUserAndSpaceAuth(space);
 
   describe('create service now action', () => {
     it('should return 403 when creating a service now action', async () => {
-      await createConnector({ supertest, req: getServiceNowConnector(), expectedHttpCode: 403 });
+      await createConnector({
+        supertest,
+        req: getServiceNowConnector(),
+        expectedHttpCode: 403,
+        auth,
+      });
     });
   });
 }
