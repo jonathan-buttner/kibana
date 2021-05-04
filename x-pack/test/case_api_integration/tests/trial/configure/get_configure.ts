@@ -22,6 +22,7 @@ import {
   getConfigurationRequest,
   removeServerGeneratedPropertiesFromSavedObject,
   getConfigurationOutput,
+  getSuperUserAndSpaceAuth,
 } from '../../../common/lib/utils';
 import { ConnectorTypes } from '../../../../../plugins/cases/common/api';
 
@@ -29,6 +30,7 @@ export function getConfigureTests({ getService }: FtrProviderContext, space?: st
   const supertest = getService('supertest');
   const actionsRemover = new ActionsRemover(supertest);
   const kibanaServer = getService('kibanaServer');
+  const auth = getSuperUserAndSpaceAuth(space);
 
   describe('get_configure', () => {
     let servicenowSimulatorURL: string = '<could not determine kibana url>';
@@ -50,6 +52,7 @@ export function getConfigureTests({ getService }: FtrProviderContext, space?: st
           ...getServiceNowConnector(),
           config: { apiUrl: servicenowSimulatorURL },
         },
+        auth,
       });
       actionsRemover.add('default', connector.id, 'action', 'actions');
 
@@ -59,10 +62,12 @@ export function getConfigureTests({ getService }: FtrProviderContext, space?: st
           id: connector.id,
           name: connector.name,
           type: connector.connector_type_id as ConnectorTypes,
-        })
+        }),
+        200,
+        auth
       );
 
-      const configuration = await getConfiguration({ supertest });
+      const configuration = await getConfiguration({ supertest, auth });
 
       const data = removeServerGeneratedPropertiesFromSavedObject(configuration[0]);
       expect(data).to.eql(

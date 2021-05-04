@@ -22,6 +22,7 @@ import {
   updateConfiguration,
   getServiceNowConnector,
   createConnector,
+  getSuperUserAndSpaceAuth,
 } from '../../../common/lib/utils';
 import { ConnectorTypes } from '../../../../../plugins/cases/common/api';
 
@@ -33,6 +34,7 @@ export function patchConfigureTests({ getService }: FtrProviderContext, space?: 
   describe('patch_configure', () => {
     const actionsRemover = new ActionsRemover(supertest);
     let servicenowSimulatorURL: string = '<could not determine kibana url>';
+    const auth = getSuperUserAndSpaceAuth(space);
 
     before(() => {
       servicenowSimulatorURL = kibanaServer.resolveUrl(
@@ -52,12 +54,18 @@ export function patchConfigureTests({ getService }: FtrProviderContext, space?: 
           ...getServiceNowConnector(),
           config: { apiUrl: servicenowSimulatorURL },
         },
+        auth,
       });
 
       actionsRemover.add('default', connector.id, 'action', 'actions');
 
       // Configuration is created with no connector so the mappings are empty
-      const configuration = await createConfiguration(supertest);
+      const configuration = await createConfiguration(
+        supertest,
+        getConfigurationRequest(),
+        200,
+        auth
+      );
 
       // the update request doesn't accept the owner field
       const { owner, ...reqWithoutOwner } = getConfigurationRequest({
@@ -67,10 +75,16 @@ export function patchConfigureTests({ getService }: FtrProviderContext, space?: 
         fields: null,
       });
 
-      const newConfiguration = await updateConfiguration(supertest, configuration.id, {
-        ...reqWithoutOwner,
-        version: configuration.version,
-      });
+      const newConfiguration = await updateConfiguration(
+        supertest,
+        configuration.id,
+        {
+          ...reqWithoutOwner,
+          version: configuration.version,
+        },
+        200,
+        auth
+      );
 
       const data = removeServerGeneratedPropertiesFromSavedObject(newConfiguration);
       expect(data).to.eql({
@@ -108,6 +122,7 @@ export function patchConfigureTests({ getService }: FtrProviderContext, space?: 
           ...getServiceNowConnector(),
           config: { apiUrl: servicenowSimulatorURL },
         },
+        auth,
       });
 
       actionsRemover.add('default', connector.id, 'action', 'actions');
@@ -119,7 +134,9 @@ export function patchConfigureTests({ getService }: FtrProviderContext, space?: 
           id: connector.id,
           name: connector.name,
           type: connector.connector_type_id as ConnectorTypes,
-        })
+        }),
+        200,
+        auth
       );
 
       // the update request doesn't accept the owner field
@@ -130,10 +147,16 @@ export function patchConfigureTests({ getService }: FtrProviderContext, space?: 
         fields: null,
       });
 
-      const newConfiguration = await updateConfiguration(supertest, configuration.id, {
-        ...rest,
-        version: configuration.version,
-      });
+      const newConfiguration = await updateConfiguration(
+        supertest,
+        configuration.id,
+        {
+          ...rest,
+          version: configuration.version,
+        },
+        200,
+        auth
+      );
 
       const data = removeServerGeneratedPropertiesFromSavedObject(newConfiguration);
       expect(data).to.eql({

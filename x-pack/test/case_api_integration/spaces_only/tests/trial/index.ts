@@ -5,8 +5,9 @@
  * 2.0.
  */
 
-import { FtrProviderContext } from '../../common/ftr_provider_context';
-import { createSpaces, deleteSpaces } from '../../common/lib/authentication';
+import { commonTrialTests } from '../../../tests/trial';
+import { FtrProviderContext } from '../../../common/ftr_provider_context';
+import { createSpaces, deleteSpaces } from '../../../common/lib/authentication';
 
 // eslint-disable-next-line import/no-default-export
 export default ({ loadTestFile, getService }: FtrProviderContext): void => {
@@ -21,5 +22,8 @@ export default ({ loadTestFile, getService }: FtrProviderContext): void => {
     after(async () => {
       await deleteSpaces(getService);
     });
+
+    // Common trial tests
+    commonTrialTests();
   });
 };

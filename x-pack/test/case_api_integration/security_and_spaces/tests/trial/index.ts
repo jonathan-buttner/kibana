@@ -22,7 +22,10 @@ export default ({ loadTestFile, getService }: FtrProviderContext): void => {
       await deleteSpacesAndUsers(getService);
     });
 
-    // Trial
+    // Trial specific RBAC tests
+    loadTestFile(require.resolve('./cases/push_case'));
+
+    // Common trial tests
     loadTestFile(require.resolve('../../../tests/trial'));
 
     // Common

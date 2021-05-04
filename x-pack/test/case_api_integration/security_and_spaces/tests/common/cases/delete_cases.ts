@@ -22,7 +22,7 @@ import {
   deleteCases,
   createComment,
   getComment,
-  getAllUserAction,
+  getCaseUserActions,
   removeServerGeneratedPropertiesFromUserAction,
   getCase,
 } from '../../../../common/lib/utils';
@@ -87,7 +87,7 @@ export default ({ getService }: FtrProviderContext): void => {
     it('should create a user action when creating a case', async () => {
       const postedCase = await createCase(supertest, getPostCaseRequest());
       await deleteCases({ supertest, caseIDs: [postedCase.id] });
-      const userActions = await getAllUserAction(supertest, postedCase.id);
+      const userActions = await getCaseUserActions({ supertest, caseID: postedCase.id });
       const creationUserAction = removeServerGeneratedPropertiesFromUserAction(userActions[1]);
 
       expect(creationUserAction).to.eql({

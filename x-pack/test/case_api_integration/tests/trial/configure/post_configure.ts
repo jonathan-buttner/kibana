@@ -22,6 +22,7 @@ import {
   createConfiguration,
   createConnector,
   getServiceNowConnector,
+  getSuperUserAndSpaceAuth,
 } from '../../../common/lib/utils';
 
 export function postConfigureTests({ getService }: FtrProviderContext, space?: string) {
@@ -32,6 +33,7 @@ export function postConfigureTests({ getService }: FtrProviderContext, space?: s
   describe('post_configure', () => {
     const actionsRemover = new ActionsRemover(supertest);
     let servicenowSimulatorURL: string = '<could not determine kibana url>';
+    const auth = getSuperUserAndSpaceAuth(space);
 
     before(() => {
       servicenowSimulatorURL = kibanaServer.resolveUrl(
@@ -51,6 +53,7 @@ export function postConfigureTests({ getService }: FtrProviderContext, space?: s
           ...getServiceNowConnector(),
           config: { apiUrl: servicenowSimulatorURL },
         },
+        auth,
       });
 
       actionsRemover.add('default', connector.id, 'action', 'actions');
@@ -61,7 +64,9 @@ export function postConfigureTests({ getService }: FtrProviderContext, space?: s
           id: connector.id,
           name: connector.name,
           type: connector.connector_type_id as ConnectorTypes,
-        })
+        }),
+        200,
+        auth
       );
 
       const data = removeServerGeneratedPropertiesFromSavedObject(postRes);

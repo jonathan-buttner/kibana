@@ -80,6 +80,7 @@ export const MAX_GENERATED_ALERTS_PER_SUB_CASE = MAX_ALERTS_PER_SUB_CASE / DEFAU
  * feature for the 7.13 migration only.
  */
 export const SECURITY_SOLUTION_OWNER = 'securitySolution';
+type SECURITY_SOLUTION_OWNER_TYPE = 'securitySolution' | 'observability' | string;
 
 /**
  * This flag governs enabling the case as a connector feature. It is disabled by default as the feature is not complete.

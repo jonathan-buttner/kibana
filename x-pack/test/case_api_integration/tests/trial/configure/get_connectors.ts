@@ -8,7 +8,6 @@
 import expect from '@kbn/expect';
 import { FtrProviderContext } from '../../../common/ftr_provider_context';
 
-import { CASE_CONFIGURE_CONNECTORS_URL } from '../../../../../plugins/cases/common/constants';
 import { ObjectRemover as ActionsRemover } from '../../../../alerting_api_integration/common/lib';
 import {
   getServiceNowConnector,
@@ -16,11 +15,14 @@ import {
   getResilientConnector,
   createConnector,
   getServiceNowSIRConnector,
+  getSuperUserAndSpaceAuth,
+  getCaseConnectors,
 } from '../../../common/lib/utils';
 
 export function getConnectorsTests({ getService }: FtrProviderContext, space?: string) {
   const supertest = getService('supertest');
   const actionsRemover = new ActionsRemover(supertest);
+  const auth = getSuperUserAndSpaceAuth(space);
 
   describe('get_connectors', () => {
     afterEach(async () => {
@@ -28,42 +30,34 @@ export function getConnectorsTests({ getService }: FtrProviderContext, space?: s
     });
 
     it('should return the correct connectors', async () => {
-      const { body: snConnector } = await supertest
-        .post('/api/actions/connector')
-        .set('kbn-xsrf', 'true')
-        .send(getServiceNowConnector())
-        .expect(200);
-
-      const { body: emailConnector } = await supertest
-        .post('/api/actions/connector')
-        .set('kbn-xsrf', 'true')
-        .send({
-          name: 'An email action',
-          connector_type_id: '.email',
-          config: {
-            service: '__json',
-            from: 'bob@example.com',
+      const [
+        snConnector,
+        emailConnector,
+        jiraConnector,
+        resilientConnector,
+        sir,
+      ] = await Promise.all([
+        createConnector({ supertest, req: getServiceNowConnector(), auth }),
+        createConnector({
+          supertest,
+          req: {
+            name: 'An email action',
+            connector_type_id: '.email',
+            config: {
+              service: '__json',
+              from: 'bob@example.com',
+            },
+            secrets: {
+              user: 'bob',
+              password: 'supersecret',
+            },
           },
-          secrets: {
-            user: 'bob',
-            password: 'supersecret',
-          },
-        })
-        .expect(200);
-
-      const { body: jiraConnector } = await supertest
-        .post('/api/actions/connector')
-        .set('kbn-xsrf', 'true')
-        .send(getJiraConnector())
-        .expect(200);
-
-      const { body: resilientConnector } = await supertest
-        .post('/api/actions/connector')
-        .set('kbn-xsrf', 'true')
-        .send(getResilientConnector())
-        .expect(200);
-
-      const sir = await createConnector({ supertest, req: getServiceNowSIRConnector() });
+          auth,
+        }),
+        createConnector({ supertest, req: getJiraConnector(), auth }),
+        createConnector({ supertest, req: getResilientConnector(), auth }),
+        createConnector({ supertest, req: getServiceNowSIRConnector(), auth }),
+      ]);
 
       actionsRemover.add('default', sir.id, 'action', 'actions');
       actionsRemover.add('default', snConnector.id, 'action', 'actions');
@@ -71,11 +65,7 @@ export function getConnectorsTests({ getService }: FtrProviderContext, space?: s
       actionsRemover.add('default', jiraConnector.id, 'action', 'actions');
       actionsRemover.add('default', resilientConnector.id, 'action', 'actions');
 
-      const { body: connectors } = await supertest
-        .get(`${CASE_CONFIGURE_CONNECTORS_URL}/_find`)
-        .set('kbn-xsrf', 'true')
-        .send()
-        .expect(200);
+      const connectors = await getCaseConnectors(supertest, 200, auth);
 
       expect(connectors).to.eql([
         {

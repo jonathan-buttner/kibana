@@ -36,7 +36,7 @@ import {
   deleteComments,
   createCase,
   createComment,
-  getAllUserAction,
+  getCaseUserActions,
   removeServerGeneratedPropertiesFromUserAction,
   removeServerGeneratedPropertiesFromSavedObject,
 } from '../../../../common/lib/utils';
@@ -139,7 +139,7 @@ export default ({ getService }: FtrProviderContext): void => {
           caseId: postedCase.id,
           params: postCommentUserReq,
         });
-        const userActions = await getAllUserAction(supertest, postedCase.id);
+        const userActions = await getCaseUserActions({ supertest, caseID: postedCase.id });
         const commentUserAction = removeServerGeneratedPropertiesFromUserAction(userActions[1]);
 
         expect(commentUserAction).to.eql({

@@ -45,13 +45,14 @@ import {
   CasesConfigurationsResponse,
   CaseUserActionsResponse,
 } from '../../../../plugins/cases/common/api';
-import { postCollectionReq, postCommentGenAlertReq } from './mock';
+import { getPostCaseRequest, postCollectionReq, postCommentGenAlertReq } from './mock';
 import { getCaseUserActionUrl, getSubCasesUrl } from '../../../../plugins/cases/common/api/helpers';
 import { ContextTypeGeneratedAlertType } from '../../../../plugins/cases/server/connectors';
 import { SignalHit } from '../../../../plugins/security_solution/server/lib/detection_engine/signals/types';
 import { ActionResult, FindActionResult } from '../../../../plugins/actions/server/types';
 import { User } from './authentication/types';
 import { superUser } from './authentication/users';
+import { ObjectRemover } from '../../../alerting_api_integration/common/lib';
 
 function toArray<T>(input: T | T[]): T[] {
   if (Array.isArray(input)) {
@@ -828,6 +829,72 @@ export const createConfiguration = async (
   return configuration;
 };
 
+export const createCaseWithConnector = async ({
+  supertest,
+  servicenowSimulatorURL,
+  actionsRemover,
+  configureReq = {},
+  auth = { user: superUser, space: undefined },
+  createCaseReq = getPostCaseRequest(),
+}: {
+  servicenowSimulatorURL: string;
+  supertest: st.SuperTest<supertestAsPromised.Test>;
+  actionsRemover: ObjectRemover;
+  configureReq?: Record<string, unknown>;
+  auth?: { user: User; space: string | undefined };
+  createCaseReq?: CasePostRequest;
+}): Promise<{
+  postedCase: CaseResponse;
+  connector: CreateConnectorResponse;
+}> => {
+  const connector = await createConnector({
+    supertest,
+    req: {
+      ...getServiceNowConnector(),
+      config: { apiUrl: servicenowSimulatorURL },
+    },
+    auth,
+  });
+
+  actionsRemover.add(auth.space ?? 'default', connector.id, 'action', 'actions');
+  await createConfiguration(
+    supertest,
+    {
+      ...getConfigurationRequest({
+        id: connector.id,
+        name: connector.name,
+        type: connector.connector_type_id as ConnectorTypes,
+      }),
+      ...configureReq,
+    },
+    200,
+    auth
+  );
+
+  const postedCase = await createCase(
+    supertest,
+    {
+      ...createCaseReq,
+      connector: {
+        id: connector.id,
+        name: connector.name,
+        type: connector.connector_type_id,
+        fields: {
+          urgency: '2',
+          impact: '2',
+          severity: '2',
+          category: 'software',
+          subcategory: 'os',
+        },
+      } as CaseConnector,
+    },
+    200,
+    auth
+  );
+
+  return { postedCase, connector };
+};
+
 export type CreateConnectorResponse = Omit<ActionResult, 'actionTypeId'> & {
   connector_type_id: string;
 };
@@ -836,12 +903,12 @@ export const createConnector = async ({
   supertest,
   req,
   expectedHttpCode = 200,
-  auth = { user: superUser },
+  auth = { user: superUser, space: undefined },
 }: {
   supertest: st.SuperTest<supertestAsPromised.Test>;
   req: Record<string, unknown>;
   expectedHttpCode?: number;
-  auth?: { user: User; space?: string };
+  auth?: { user: User; space: string | undefined };
 }): Promise<CreateConnectorResponse> => {
   const { body: connector } = await supertest
     .post(`${getSpaceUrlPrefix(auth.space)}/api/actions/connector`)
@@ -855,10 +922,12 @@ export const createConnector = async ({
 
 export const getCaseConnectors = async (
   supertest: st.SuperTest<supertestAsPromised.Test>,
-  expectedHttpCode: number = 200
+  expectedHttpCode: number = 200,
+  auth: { user: User; space: string | undefined } = { user: superUser, space: undefined }
 ): Promise<FindActionResult[]> => {
   const { body: connectors } = await supertest
-    .get(`${CASE_CONFIGURE_CONNECTORS_URL}/_find`)
+    .get(`${getSpaceUrlPrefix(auth.space)}${CASE_CONFIGURE_CONNECTORS_URL}/_find`)
+    .auth(auth.user.username, auth.user.password)
     .set('kbn-xsrf', 'true')
     .expect(expectedHttpCode);
 
