@@ -12,7 +12,8 @@ import { getRegistryUrl as getRegistryUrlFromIngest } from '../../../plugins/fle
 export default function endpointAPIIntegrationTests(providerContext: FtrProviderContext) {
   const { loadTestFile, getService } = providerContext;
 
-  describe('Endpoint plugin', function () {
+  describe.only('Endpoint plugin', function () {
+    this.tags('ciGroup7');
     const ingestManager = getService('ingestManager');
 
     const log = getService('log');
